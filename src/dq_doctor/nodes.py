@@ -61,8 +61,9 @@ def _get_llm() -> ChatOpenAI | None:
         api_key=api_key,
         base_url=BASE_URL,
         temperature=0.1,
-        timeout=60,
-        max_retries=2,
+        # 降级要快：断网时用户不该盯着 spinner 等两分钟才看到规则引擎报告。
+        timeout=10,
+        max_retries=1,
     )
 
 

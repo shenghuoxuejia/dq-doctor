@@ -90,7 +90,9 @@ def scan_leakage(
             X_feat = series_arr[valid_mask].astype(float)
             y_true = target_encoded[valid_mask]
 
-            if len(np.unique(X_feat)) > 1:
+            # 单类目标（该子集里只有 0 或只有 1）时 ROC-AUC 无定义，直接跳过，
+            # 否则 sklearn 会刷 UndefinedMetricWarning 并返回 nan。
+            if len(np.unique(X_feat)) > 1 and len(np.unique(y_true)) == 2:
                 try:
                     auc = roc_auc_score(y_true, X_feat)
                     auc = max(auc, 1 - auc)

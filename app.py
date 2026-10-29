@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from dq_doctor.graph import build_graph
+from dq_doctor.report import format_constant_item, format_id_item, format_perfect_item
 
 st.set_page_config(page_title="DQ-Doctor", page_icon="🩺", layout="wide")
 st.title("🩺 DQ-Doctor：建模感知的数据质量诊断 Agent")
@@ -111,18 +112,25 @@ if run_btn:
                                 else:
                                     st.write(f"**扫描摘要:** {lea.get('summary', '')}")
 
-                                    # 新增：展示无效列
+                                    # 展示无效列 / ID 列 / 泄漏候选时都带上列名：
+                                    # 只说「发现 1 个高风险特征」而不给列名，用户没法行动。
                                     consts = lea.get("constant_columns", [])
                                     if consts:
-                                        st.error(f"发现 {len(consts)} 个全空/常量列：")
+                                        st.error(f"发现 {len(consts)} 个全空/常量列（建议删除）：")
                                         for item in consts:
-                                            st.code(item["risk"], language="text")
+                                            st.code(format_constant_item(item), language="text")
+
+                                    ids = lea.get("id_like_columns", [])
+                                    if ids:
+                                        st.error(f"发现 {len(ids)} 个高基数 ID 列（建议排除出特征集）：")
+                                        for item in ids:
+                                            st.code(format_id_item(item), language="text")
 
                                     perfect = lea.get("perfect_predictors", [])
                                     if perfect:
                                         st.warning(f"发现 {len(perfect)} 个高风险预测特征（请结合业务核实）：")
                                         for item in perfect:
-                                            st.code(item["risk"], language="text")
+                                            st.code(format_perfect_item(item), language="text")
                                     else:
                                         st.write("未发现明显的数据泄漏。")
                     col_idx += 1

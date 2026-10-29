@@ -1,7 +1,0 @@
-pyproject.toml
-src/dq_doctor/__init__.py
-src/dq_doctor.egg-info/PKG-INFO
-src/dq_doctor.egg-info/SOURCES.txt
-src/dq_doctor.egg-info/dependency_links.txt
-src/dq_doctor.egg-info/requires.txt
-src/dq_doctor.egg-info/top_level.txt

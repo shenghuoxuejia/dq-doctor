@@ -4,5 +4,5 @@ __pycache__/
 .env
 *.db
 .pytest_cache/
-.ruff_cache/src/dq_doctor.egg-info/
-data/
+.ruff_cache/
+src/dq_doctor.egg-info/

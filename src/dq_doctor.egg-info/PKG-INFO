@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: dq-doctor
+Version: 0.1.0
+Summary: A modeling-aware data quality diagnostic agent
+Requires-Python: >=3.10
+Requires-Dist: langgraph>=0.2
+Requires-Dist: langchain-openai>=0.2
+Requires-Dist: pandas
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: statsmodels
+Requires-Dist: missingno
+Requires-Dist: matplotlib
+Requires-Dist: streamlit
+Requires-Dist: pydantic>=2
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: ruff; extra == "dev"

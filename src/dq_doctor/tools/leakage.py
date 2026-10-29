@@ -100,7 +100,7 @@ def scan_leakage(
                         perfect_predictors.append({
                             "column": col,
                             "single_feature_auc": round(float(auc), 3),
-                            "risk": f"单特征 AUC={auc:.3f}。预测能力异常高，高度疑似目标泄漏。",
+                            "risk": "预测能力异常高，高度疑似目标泄漏。",
                         })
                         candidate_cols.append(col)
                 except Exception:

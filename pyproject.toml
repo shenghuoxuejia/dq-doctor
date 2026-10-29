@@ -33,7 +33,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.5"]
-bench = ["matplotlib", "missingno", "seaborn>=0.13"]
+bench = ["matplotlib", "seaborn>=0.13"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

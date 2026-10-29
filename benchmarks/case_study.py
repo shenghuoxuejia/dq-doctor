@@ -17,7 +17,6 @@ from pathlib import Path
 os.environ.setdefault("MPLBACKEND", "Agg")
 
 import matplotlib.pyplot as plt  # noqa: E402
-import missingno as msno  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 import seaborn as sns  # noqa: E402
@@ -86,7 +85,7 @@ def run_case_study(df: pd.DataFrame) -> dict:
     X_all = df.drop(columns=["target"]).fillna(0)
     auc_with = cross_val_score(clf, X_all, y, cv=5, scoring="roc_auc").mean()
 
-    # 关键：删哪些列由工具输出决定，脚本里没有出现列名字面量
+    # 关键：删哪些列由工具输出决定，删除逻辑里不出现列名字面量
     X_clean = X_all.drop(columns=flagged)
     auc_without = cross_val_score(clf, X_clean, y, cv=5, scoring="roc_auc").mean()
 
@@ -273,11 +272,19 @@ def cluster_dedup() -> dict:
 def make_figures(df: pd.DataFrame) -> None:
     FIG.mkdir(parents=True, exist_ok=True)
 
-    # 图 1：缺失概况。只画有缺失的列 + 用 bar 而不是 matrix，
-    # 否则 1000×16 的矩阵在缩略图里就是一块黑。
-    plt.figure(figsize=(8, 4))
-    msno.bar(df, figsize=(8, 4), fontsize=9, labels=True)
-    plt.title("缺失概况（仅列级比例，便于缩略图阅读）")
+    # 图 1：缺失率。不用 msno.bar —— 它画的是非空比例，柱子齐刷刷贴到 1.0，
+    # 配上「缺失概况」的标题会被读成「每列 100% 缺失」。
+    # 全部列都画出来（哪怕缺失率是 0），这样「只有一列有缺失」也是一眼可见的信息。
+    rates = df.isna().mean().sort_values(ascending=False)
+    fig, ax = plt.subplots(figsize=(9, 4))
+    ax.bar(rates.index.astype(str), rates.values, color="#4c78a8", width=0.6)
+    ax.set_ylabel("缺失率")
+    ax.set_ylim(0, max(0.2, float(rates.max()) * 1.3))
+    ax.set_title(f"各列缺失率（最高 {rates.max():.1%}，共 {int((rates > 0).sum())} 列存在缺失）")
+    ax.tick_params(axis="x", rotation=60)
+    for i, v in enumerate(rates.values):
+        if v > 0:
+            ax.text(i, v + 0.004, f"{v:.1%}", ha="center", fontsize=8)
     plt.tight_layout()
     plt.savefig(FIG / "missing_bar.png", bbox_inches="tight", dpi=150)
     plt.close()
@@ -336,7 +343,7 @@ def write_results(case: dict, fixtures: list[dict], err: dict, dedup: dict) -> N
 
     add("## 1. 案例研究：删哪一列由工具决定\n")
     add(
-        "脚本里**没有出现泄漏列名的字面量**：`scan_leakage()` 先给出候选，"
+        "**删除逻辑不硬编码列名**：`scan_leakage()` 先给出候选，"
         "下游 `drop()` 用的就是它的返回值。\n"
     )
     add("| 项目 | 结果 |")
@@ -424,7 +431,27 @@ def write_results(case: dict, fixtures: list[dict], err: dict, dedup: dict) -> N
         "且没有丢掉最强信号\n"
     )
 
-    add("## 5. 复现\n")
+    add("## 5. 真实数据集上的一次处置决定（UCI WDBC，569 × 31）\n")
+    add(
+        "`real_cancer.csv` 不是合成数据：它来自 UCI Breast Cancer Wisconsin（诊断）数据集，"
+        "目标是「恶性 / 良性」。工具在上面报了以下候选：\n"
+    )
+    for col, auc in dedup["reported"]:
+        add(f"- `{col}`：单特征 AUC **{auc:.3f}**")
+    add("")
+    add(
+        "**处置决定：全部保留，不按泄漏处理。** 理由有两条——\n"
+        "1. 它们确实是真实强信号：细胞核的周长与凹陷程度是临床上判断恶性的核心形态学指标，"
+        "公开文献里这类诊断模型的 AUC 普遍在 0.95 以上，单特征到 0.97 并不异常；\n"
+        "2. 预测时点可得：它们是穿刺活检图像的测量结果，与标签出自同一次检查，"
+        "不属于「事后才知道」的信息。\n"
+    )
+    add(
+        "> 这条记录本身就是结论：工具的输出是**待核实的候选**，不是判决。"
+        "把「高 AUC → 直接删列」自动化掉，等于把真实信号一起删了。\n"
+    )
+
+    add("## 6. 复现\n")
     add("```bash")
     add('pip install -e ".[bench]"')
     add("python benchmarks/case_study.py    # 重跑全部表格与图片")

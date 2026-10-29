@@ -118,7 +118,7 @@ dq-doctor/
 │   └── tools/
 │       ├── missingness.py      # Little's MCAR + FDR 校正的 MNAR 检测
 │       └── leakage.py          # AUC / ID / 常量列 / 同源特征扫描
-├── tests/                      # 20 个测试，无需 API Key
+├── tests/                      # 26 个测试，无需 API Key
 ├── benchmarks/                 # 案例研究：删除泄漏特征后 AUC 从 1.000 → 0.910
 └── data/                       # 示例数据集（含真实乳腺癌数据集）
 ```
@@ -141,7 +141,7 @@ CI 在 Python 3.10 / 3.11 / 3.12 上运行，并且**刻意在无 `DEEPSEEK_API_
 诚实说明当前版本的边界：
 
 - **仅支持二分类目标**。多分类/回归会显式跳过泄漏扫描（AUC 不适用），不会给出错误结论。
-- **高 AUC ≠ 泄漏**。乳腺癌数据集的 `worst perimeter`（AUC 0.975）就是合法强特征。当前阈值（0.95）为硬编码，尚未提供误报率基准。
+- **高 AUC ≠ 泄漏**。乳腺癌数据集的 `worst perimeter`（AUC 0.975）就是合法强特征。当前阈值（0.95）为硬编码：400 次蒙特卡洛实测误报率 **0.0%**，代价是 0.92 附近的真实泄漏会被漏掉（见 [benchmarks/RESULTS.md](benchmarks/RESULTS.md) 第 3 节）。
 - **时序泄漏未覆盖**。`state.time_col` 已预留但尚未实现"未来信息"检测。
 - **Little's MCAR 只能否证 MCAR**，无法区分 MAR 与 MNAR；"MNAR 嫌疑"来自缺失指示变量与标签的关联检验，属启发式判断。
 

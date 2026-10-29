@@ -17,13 +17,18 @@
 
 ## 📸 效果示例
 
+![界面](docs/screenshots/dashboard.png)
+
+> 上传 CSV、指定目标列后，统计检验给出严重度排序，LLM 把它翻译成可执行的建议。
+> 本例中 `leak_score` 的单特征 AUC 达到 1.000（疑似标签泄漏），
+> `income` 的缺失与标签显著相关（MNAR，effect≈0.997）——两者的处置方式完全不同。
+
 ![单特征 AUC 扫描](benchmarks/figures/feature_aucs.png)
 
-> 泄漏扫描的中间产物：每个数值特征单独训练逻辑回归后的交叉验证 AUC。
-> `post_event_status` 越过 0.95 阈值被判为泄漏候选 —— 它在事件发生后才产生，
-> 建模时根本拿不到。剔除后交叉验证 AUC 从 **1.000 降到 0.910**（见 [benchmarks/RESULTS.md](benchmarks/RESULTS.md)）。
-
-界面截图请见 `docs/screenshots/`（运行 `streamlit run app.py` 后自行截取放入即可）。
+> 泄漏扫描的中间产物：**原始 ROC-AUC**，即每个特征单独与标签算出的可分性
+> （未训练模型、未做交叉验证）。`post_event_status` 越过 0.95 阈值被判为泄漏候选 ——
+> 它在事件发生后才产生，建模时根本拿不到。按工具建议剔除后，
+> 5 折交叉验证 AUC 从 **1.000 降到 0.910**（见 [benchmarks/RESULTS.md](benchmarks/RESULTS.md)）。
 
 ---
 

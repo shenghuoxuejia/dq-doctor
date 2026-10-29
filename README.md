@@ -118,7 +118,7 @@ dq-doctor/
 │   └── tools/
 │       ├── missingness.py      # Little's MCAR + FDR 校正的 MNAR 检测
 │       └── leakage.py          # AUC / ID / 常量列 / 同源特征扫描
-├── tests/                      # 26 个测试，无需 API Key
+├── tests/                      # 29 个测试，无需 API Key
 ├── benchmarks/                 # 案例研究：删除泄漏特征后 AUC 从 1.000 → 0.910
 └── data/                       # 示例数据集（含真实乳腺癌数据集）
 ```

@@ -4,6 +4,8 @@
 能否在不配置 API Key 的情况下跑通整个项目。
 """
 
+import sys
+import types
 from pathlib import Path
 
 import pandas as pd
@@ -55,6 +57,28 @@ def _healthy_diagnoses() -> dict:
 def test_get_llm_returns_none_without_api_key(monkeypatch):
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
     assert nodes._get_llm() is None
+
+
+def test_api_key_falls_back_to_streamlit_secrets(monkeypatch):
+    """部署到 Streamlit Cloud 时 Key 通常只存在 secrets 里，不能因此降级。"""
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    fake = types.SimpleNamespace(secrets={"DEEPSEEK_API_KEY": "sk-from-secrets"})
+    monkeypatch.setitem(sys.modules, "streamlit", fake)
+    assert nodes._api_key() == "sk-from-secrets"
+
+
+def test_api_key_prefers_env_over_secrets(monkeypatch):
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-from-env")
+    fake = types.SimpleNamespace(secrets={"DEEPSEEK_API_KEY": "sk-from-secrets"})
+    monkeypatch.setitem(sys.modules, "streamlit", fake)
+    assert nodes._api_key() == "sk-from-env"
+
+
+def test_api_key_is_empty_when_secrets_unavailable(monkeypatch):
+    """没有 streamlit、也没有环境变量时，应安静地返回空串而不是抛异常。"""
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    monkeypatch.setitem(sys.modules, "streamlit", None)
+    assert nodes._api_key() == ""
 
 
 def test_import_does_not_require_api_key(monkeypatch):

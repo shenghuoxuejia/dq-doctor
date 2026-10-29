@@ -51,9 +51,26 @@ SYNTH_PROMPT = """你是一个资深的数据科学专家。下面是自动化�
 # --------------------------------------------------------------------------- #
 # LLM 客户端：惰性构造
 # --------------------------------------------------------------------------- #
+def _api_key() -> str:
+    """环境变量优先；没有再读 Streamlit secrets（云端部署时 Key 通常放在那里）。
+
+    本地脚本、pytest、CI 里没有 Streamlit 运行时，读 ``st.secrets`` 会抛异常，
+    这里一律吞掉并返回空串——这个函数的职责是「找不到 Key」，不是「报错」。
+    """
+    key = (os.getenv("DEEPSEEK_API_KEY") or "").strip()
+    if key:
+        return key
+    try:
+        import streamlit as st
+
+        return str(st.secrets.get("DEEPSEEK_API_KEY", "") or "").strip()
+    except Exception:  # noqa: BLE001 - 没有 secrets 就是没有 Key，不是错误
+        return ""
+
+
 def _get_llm() -> ChatOpenAI | None:
     """按需构造 LLM 客户端；未配置 API Key 时返回 None（走规则引擎）。"""
-    api_key = (os.getenv("DEEPSEEK_API_KEY") or "").strip()
+    api_key = _api_key()
     if not api_key:
         return None
     return ChatOpenAI(

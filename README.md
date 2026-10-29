@@ -87,6 +87,8 @@ streamlit run app.py
 python -m pytest
 ```
 
+> 想让它在线可用？见 [docs/deploy.md](docs/deploy.md)（Streamlit Community Cloud，免费，约 5 分钟）。
+
 ### 命令行调用
 
 ```python
